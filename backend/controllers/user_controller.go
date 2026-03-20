@@ -16,14 +16,13 @@ func Init(db *gorm.DB) {
 }
 
 func Register(c *gin.Context) {
-	var doctor models.Doctor
-
-	if err := c.ShouldBindJSON(&doctor); err != nil {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	err := services.RegisterDoctor(DB, doctor)
+	err := services.RegisterUser(DB, user)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -33,22 +32,22 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var input models.Doctor
-
+	var input models.User
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	doctor, err := services.LoginDoctor(DB, input.Email, input.Password)
+	user, err := services.LoginUser(DB, input.Email, input.Password)
 	if err != nil {
 		c.JSON(401, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	token, _ := utils.GenerateToken(doctor.ID)
+	token, refreshToken := utils.GenerateTokenPair(user.ID, user.Role)
 
 	c.JSON(200, gin.H{
-		"token": token,
+		"token":         token,
+		"refresh_token": refreshToken,
 	})
 }
