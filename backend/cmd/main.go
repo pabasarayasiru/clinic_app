@@ -17,7 +17,15 @@ func main() {
 
 	db := config.ConnectDB()
 
-	db.AutoMigrate(&models.Doctor{})
+	db.AutoMigrate(
+		&models.User{},
+		&models.Visit{},
+		&models.ClinicNote{},
+		&models.DrugPrescription{},
+		&models.LabTest{},
+		&models.Billing{},
+		&models.AIParsingLog{},
+	)
 
 	gin.SetMode(gin.ReleaseMode)
 
