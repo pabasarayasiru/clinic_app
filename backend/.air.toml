@@ -1,0 +1,20 @@
+# .air.toml
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Build your main.go into tmp/main.exe and run that
+cmd = "go build -o tmp/main.exe cmd/main.go"
+bin = "tmp/main.exe"
+
+# Files extensions to watch
+include_ext = ["go", "tpl", "tmpl", "html"]
+
+# Folders to ignore
+exclude_dir = ["tmp", "vendor"]
+
+[color]
+main = "yellow"
+
+[log]
+# Only show rebuild and runtime logs, hide build exit code
