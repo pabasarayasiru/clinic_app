@@ -16,13 +16,58 @@ func CreateVisit(c *gin.Context) {
 		return
 	}
 
+	// Get doctor from JWT
+	doctorID := c.GetUint("user_id")
+	visit.DoctorID = doctorID
+
+	// Save Visit FIRST
 	err := services.CreateVisit(DB, visit)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "Visit created"})
+	// AI Parsing
+	aiResult, err := services.ParseWithAI(visit.NotesRawInput)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "AI parsing failed"})
+		return
+	}
+
+	// Save AI Logs (IMPORTANT for assignment)
+	services.AddAIParsingLog(DB, models.AIParsingLog{
+		VisitID:  visit.ID,
+		RawInput: visit.NotesRawInput,
+	})
+
+	// Save Notes
+	for _, note := range aiResult.Notes {
+		services.AddClinicNote(DB, models.ClinicNote{
+			VisitID:  visit.ID,
+			NoteText: note,
+		})
+	}
+
+	// Save Drugs
+	for _, d := range aiResult.Drugs {
+		services.AddDrugPrescription(DB, models.DrugPrescription{
+			VisitID:  visit.ID,
+			DrugName: d.Name,
+			Dosage:   d.Dosage,
+		})
+	}
+
+	// Save Labs
+	for _, l := range aiResult.Labs {
+		services.AddLabTest(DB, models.LabTest{
+			VisitID:  visit.ID,
+			TestName: l,
+		})
+	}
+
+	c.JSON(200, gin.H{
+		"message": "Visit created with AI parsing",
+	})
 }
 
 func GetVisit(c *gin.Context) {

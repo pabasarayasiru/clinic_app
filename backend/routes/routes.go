@@ -18,6 +18,8 @@ func SetupRoutes(r *gin.Engine, db *gorm.DB) {
 		auth.POST("/login", controllers.Login)
 	}
 
+	auth.POST("/refresh", controllers.RefreshToken)
+
 	// PROTECTED ROUTES
 	api := r.Group("/api")
 	api.Use(middleware.AuthMiddleware())
